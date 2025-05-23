@@ -207,3 +207,45 @@ def test_add_code_execution_tool():
     assert tools is not None
     assert len(tools) == 1
     assert tools[0]["type"] == "code_execution_20250522"
+
+
+def test_max_tokens_default_added_when_not_provided():
+    """Test that max_tokens is set to default when not provided in the request"""
+    from litellm.constants import DEFAULT_ANTHROPIC_CHAT_MAX_TOKENS
+
+    config = AnthropicConfig()
+
+    # Test with no max_tokens or max_completion_tokens
+    optional_params = {}
+    non_default_params = {}
+
+    result = config.map_openai_params(
+        non_default_params=non_default_params,
+        optional_params=optional_params,
+        model="claude-3-opus-20240229",
+        drop_params=False,
+    )
+
+    # Should have default max_tokens
+    assert "max_tokens" in result
+    assert result["max_tokens"] == DEFAULT_ANTHROPIC_CHAT_MAX_TOKENS
+
+
+def test_max_tokens_preserved_when_explicitly_provided():
+    """Test that explicit max_tokens value is not overridden"""
+    config = AnthropicConfig()
+
+    # Test with explicit max_tokens
+    optional_params = {}
+    non_default_params = {"max_tokens": 2000}
+
+    result = config.map_openai_params(
+        non_default_params=non_default_params,
+        optional_params=optional_params,
+        model="claude-3-opus-20240229",
+        drop_params=False,
+    )
+
+    # Should preserve the explicit value
+    assert "max_tokens" in result
+    assert result["max_tokens"] == 2000
